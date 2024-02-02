@@ -1,0 +1,183 @@
+﻿@using static EventifyMVC.Enums.Enums;
+@model CategoryIndexVM
+
+<partial name="_Notification" />
+
+@{
+    ViewData["Title"] = "Index";
+    var name = Context.Request.Query["name"];
+    var currentQuery = Context.Request.Query["orderBy"];
+    var currentPage = Context.Request.Query["pageNumber"];
+
+    if (String.IsNullOrEmpty(currentPage))
+    {
+        currentPage = "1";
+    }
+
+    var futureQuery = (string.IsNullOrEmpty(currentQuery) || currentQuery == "name_dsc") ? "name_asc" : "name_dsc";
+}
+
+
+<div class="container mb-5">
+    <div class="row col-6 mx-auto g-3">
+        <a asp-controller="Category" asp-action="Details" asp-route-id="@Model.TrendingFilter.MostTrendingFilter.Id" class="col-5 border rounded-3 shadow-sm h-20 mx-3 flex items-center gap-x-5" role="button" title="Trending Category">
+            <div class="d-flex justify-content-center align-items-center h-14 w-14 rounded-full text-center" style="background-color: #dcfce7">
+                <i class="bi bi-graph-up-arrow text-xl" style="color: #15803d"></i>
+            </div>
+            <div class="flex flex-column gap-y-1">
+                <h1 class="text-gray-500 font-medium">@(Model.TrendingFilter.MostTrendingFilter.Name)</h1>
+                <h1><strong class="text-2xl">@(Model.TrendingFilter.NumberOfEvents)</strong> Events</h1>
+            </div>
+        </a>
+        <a asp-controller="Category" asp-action="Details" asp-route-id="@Model.UnusedFilter.MostTrendingFilter.Id" class="col-5 border rounded-3 shadow-sm h-20 mx-3 flex items-center gap-x-5" role="button" title="Non-Trending Category">
+            <div class="d-flex justify-content-center align-items-center h-14 w-14 rounded-full text-center" style="background-color: #fcdae7">
+                <i class="bi bi-graph-down-arrow text-xl" style="color: #80153d"></i>
+            </div>
+            <div class="flex flex-column gap-y-1">
+                <h1 class="text-gray-500 font-medium">@(Model.UnusedFilter.MostTrendingFilter.Name)</h1>
+                <h1><strong class="text-2xl">@(Model.UnusedFilter.NumberOfEvents)</strong> Events</h1>
+            </div>
+        </a>
+    </div>
+</div>
+
+
+<div class="container p-3 rounded-xl shadow">
+    <div class="row mb-3">
+        <div class="col-12 pb-3">
+            <h2 class="text-2xl font-semibold">Categories</h2>
+        </div>
+        <hr />
+
+        <div class="col-md-6 mt-3">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input name="name" id="searchInput" class="form-control" value="@name" placeholder="Search for categories" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6 text-end mt-3">
+            <a asp-controller="Category" asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create New Category</a>
+        </div>
+    </div>
+
+
+@if(Model.TotalResults > 0 && int.Parse(currentPage) <= Model.TotalPages)
+{
+    <table class="table table-striped mt-4" style="width:100%">
+    <thead>
+        <tr>
+            <th>
+                <a href="/Category/Index?name=@name&orderBy=@futureQuery" class="flex items-center gap-x-3 text-black">
+                    Category Name
+                    <div class="flex flex-col text-sm">
+                            @if (String.IsNullOrEmpty(currentQuery))
+                            {
+                                <i class="bi bi-caret-up -mb-2.5"></i>
+                                <i class="bi bi-caret-down"></i>
+                            }else if(currentQuery == "name_asc")
+                            {
+                                <i class="bi bi-caret-up-fill mb-1"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-caret-down-fill -mb-2.5"></i>
+                            }
+
+                    </div>
+                 </a>
+            </th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var obj in Model.Categories)
+        {
+            <tr>
+                <td width="83.5%">
+                    @obj.Name
+                </td>
+                    <td>
+                            <div class="bg-blue-200  rounded-lg hover:bg-blue-300 d-inline-block">
+                                <a asp-controller="Category" asp-action="Details" asp-route-id="@obj.Id" class="btn"> <i class="bi bi-eye"></i></a>
+                            </div>
+                        <div class="bg-green-200  rounded-lg hover:bg-green-300 d-inline-block">
+                            <a asp-controller="Category" asp-action="Edit" asp-route-id="@obj.Id" class="btn"> <i class="bi bi-pencil-square"></i></a>
+                        </div>
+                            <div class="bg-red-200 rounded-lg hover:bg-red-300 d-inline-block" data-bs-toggle="modal" data-bs-target="#modal@(obj.Id)">
+                                <a class="btn"> <i class="bi bi-trash3"></i></a>
+                            </div>
+
+                            <div class="modal fade" id="modal@(obj.Id)" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Delete Category</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-center text-lg">
+                                            <p>
+                                                Are you sure you want to delete <br /><strong class="text-xl">@obj.Name</strong> permanently?
+                                            </p>
+                                            <p>Deleting <strong>@obj.Name</strong> will also delete all events which have this category.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <form method="post" asp-action="Delete" asp-route-id="@obj.Id" asp-route-name="@name" asp-route-orderBy="@currentQuery" asp-route-pageNumber="@currentPage">
+                                                <button type="submit" class="btn bg-red-600 text-white font-medium">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+    <div class="row">
+        <div class="col-md-6">
+            Showing <strong>@((int.Parse(currentPage) * (int)PageSize.Default) - ((int)PageSize.Default - 1))</strong> to <strong>@(int.Parse(currentPage) * (int)PageSize.Default <= Model.TotalResults ? int.Parse(currentPage) * (int)PageSize.Default : Model.TotalResults)</strong> of <strong>@Model.TotalResults</strong> results
+        </div>
+        @if (Model.TotalPages > 1)
+        {
+            <div class="col-md-6 d-flex justify-content-end">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                        @if (int.Parse(currentPage) != 1)
+                        {
+                            <li class="page-item me-2"><a class="page-link" href="/Category/Index?name=@name&orderBy=@currentQuery&pageNumber=@(int.Parse(currentPage) - 1)">Previous</a></li>
+                        }
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == int.Parse(currentPage) ? "active" : "")"><a class="page-link" href="/Category/Index?name=@name&orderBy=@currentQuery&pageNumber=@i">@i</a></li>
+                        }
+
+                        @if (int.Parse(currentPage) != Model.TotalPages)
+                        {
+                            <li class="page-item ms-2"><a class="page-link" href="/Category/Index?name=@name&orderBy=@currentQuery&pageNumber=@(int.Parse(currentPage) + 1)">Next</a></li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
+        </div>
+    }
+    else
+    {
+        <img src="@Url.Content("~/images/noResultsFound.png")" class="block mx-auto w-1/6 -mt-10" />
+        <h1 class="text-center text-xl font-semibold -mt-5">No results found. Please try a different search!</h1>
+    }
+
+
+</div>
+
+
+
+
+

@@ -1,0 +1,35 @@
+﻿@model Language
+@{
+    ViewData["Title"] = "Create";
+}
+
+<div class="container p-3 rounded-xl shadow">
+    <div class="row mb-3">
+        <div class="col-12 pb-3">
+            <h2 class="text-2xl font-semibold">Create Language</h2>
+        </div>
+        <hr />
+
+    </div>
+
+    <form method="post" asp-action="Create">
+        <div class="form-floating mb-3">
+            <input asp-for="Name" class="form-control -py-2" placeholder="Language Name">
+            <label asp-for="Name">Language Name</label>
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn py-2 text-white font-medium" style="width: 150px; background-color: #F05537">Save Changes</button>
+            <a asp-controller="Language" asp-action="Index" class="btn btn-secondary py-2" style="width:150px">
+                Back to List
+            </a>
+        </div>
+    </form>
+
+</div>
+
+@section Scripts{
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+}

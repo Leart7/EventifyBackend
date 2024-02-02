@@ -1,0 +1,72 @@
+﻿@model Category
+
+<div class="container p-3 rounded-xl shadow">
+    <div class="row mb-3">
+        <div class="col-12 pb-3">
+            <h2 class="text-2xl font-semibold">Category Details</h2>
+        </div>
+        <hr />
+
+    </div>
+
+    <div class="container mb-3">
+        <div class="row d-flex justify-content-center align-items-center w-50 mx-auto">
+            <a  asp-controller="Event" asp-action="Index" asp-route-category="@Model.Name" asp-route-pastEvents=" " class="col-5 border rounded-3 shadow-sm h-20 flex items-center gap-x-5" role="button" title="Filter Events with @Model.Name category">
+                <div class="d-flex justify-content-center align-items-center h-14 w-14 rounded-full text-center" style="background-color: #dcfce7">
+                    <i class="bi bi-tag text-xl" style="color: #15803d"></i>
+                </div>
+                <div class="flex flex-column gap-y-1">
+                    <h1 class="text-gray-500 font-medium">@(Model.Name)</h1>
+                    <h1><strong class="text-2xl">@Model?.Events?.Count</strong> Events</h1>
+                </div>
+            </a>
+        </div>
+    </div>
+
+
+        <div class="mb-2">
+            <label asp-for="Id" class="form-label">Id</label>
+            <input asp-for="Id" class="form-control" disabled>
+        </div>
+        <div class="mb-2">
+            <label asp-for="Name" class="form-label">Category Name</label>
+            <input asp-for="Name" class="form-control" disabled>
+        </div>
+         <div class="mb-2">
+            <label asp-for="Created_at" class="form-label">Created at</label>
+            <input asp-for="Created_at" class="form-control" value="@Model.Created_at.ToString("yyyy-MM-dd HH:mm")" disabled>
+        </div>
+        <div class="mb-2">
+            <label asp-for="Updated_at" class="form-label">Updated at</label>
+            <input asp-for="Updated_at" class="form-control" value="@Model.Updated_at.ToString("yyyy-MM-dd HH:mm")" disabled>
+        </div>
+        <div class="flex items-center gap-x-2 mt-4">
+            <a asp-controller="Category" asp-action="Index" class="btn btn-secondary py-2" style="width:125px">Back to list</a>
+            <a asp-controller="Category" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary py-2" style="width:125px">Edit</a>
+            <a data-bs-toggle="modal" data-bs-target="#modal@(Model.Id)" class="btn bg-red-600 text-white py-2" style="width:125px">Delete</a>
+        </div>
+    
+</div>
+
+<div class="modal fade" id="modal@(Model.Id)" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Delete Category</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center text-lg">
+                <p>
+                    Are you sure you want to delete <br /><strong class="text-xl">@Model.Name</strong> permanently?
+                </p>
+                <p>Deleting <strong>@Model.Name</strong> will also delete all events which have this category.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form method="post" asp-action="Delete" asp-route-id="@Model.Id">
+                    <button type="submit" class="btn bg-red-600 text-white font-medium">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

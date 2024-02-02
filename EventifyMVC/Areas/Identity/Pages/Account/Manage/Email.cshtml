@@ -1,0 +1,40 @@
+﻿@page
+@model EmailModel
+@{
+    ViewData["Title"] = "Manage Email";
+    ViewData["ActivePage"] = ManageNavPages.Email;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+<div class="container p-3 rounded-xl shadow">
+    <div class="row mb-3">
+        <div class="col-12 pb-3">
+            <h2 class="text-2xl font-semibold">Change Email</h2>
+        </div>
+        <hr />
+    </div>
+        <form id="email-form" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Email" class="form-control" disabled placeholder="" />
+                    <label asp-for="Email" class="form-label"></label>
+                </div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="" value="" />
+            <label asp-for="Input.NewEmail" class="form-label"></label>
+            <span asp-validation-for="Input.NewEmail" class="text-danger"></span>
+        </div>
+        <div  class="mt-4 flex items-center justify-between">
+            <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn text-white font-medium py-2" style="width: 200px; background-color: #F05537">Update email</button>
+            <div class="flex items-center gap-x-3">
+                <a role="button" class="btn btn-secondary py-2 @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index" style="width:200px">Profile</a>
+                <a role="button" class="btn btn-light py-2 @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword" style="width:200px"> Change Password</a>
+            </div>
+        </div>
+        </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

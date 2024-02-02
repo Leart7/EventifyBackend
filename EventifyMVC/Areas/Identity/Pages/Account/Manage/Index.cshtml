@@ -1,0 +1,91 @@
+﻿@page
+@using EventifyCommon.Models;
+@model IndexModel
+@inject UserManager<IdentityUser> UserManager
+
+@{
+    ViewData["Title"] = "Profile";
+    ViewData["ActivePage"] = ManageNavPages.Index;
+
+    var user = await UserManager.GetUserAsync(User) as ApplicationUser;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+<div class="container p-3 rounded-xl shadow">
+    <div class="row mb-3">
+        <div class="col-12 pb-3">
+            <h2 class="text-2xl font-semibold">Edit Profile</h2>
+        </div>
+        <hr />
+    </div>
+        <form id="profile-form" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-floating mb-3 mx-auto text-center flex items-center justify-center">
+            @if (!string.IsNullOrEmpty(user.ImageUrl))
+            {
+                <div id="profile-image" class="profile-image bg-cover bg-center rounded-full h-32 w-32 cursor-pointer" style="background-image: url('@user.ImageUrl'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;" onclick="document.getElementById('file-input').click();"></div>
+            }
+            else
+            {
+                <div id="profile-image" class="rounded-full bg-gray-300 h-32 w-32 cursor-pointer flex items-center justify-center" onclick="document.getElementById('file-input').click();">
+                    <span class="text-gray-600">Upload Image</span>
+                </div>
+            }
+            <input asp-for="Input.Image" type="file" id="file-input" class="form-control hidden" onchange="previewImage(this);" />
+        </div>
+
+        <script>
+            function previewImage(input) {
+                var preview = document.getElementById('profile-image');
+                var file = input.files[0];
+                var reader = new FileReader();
+
+                reader.onloadend = function () {
+                    preview.style.backgroundImage = "url('" + reader.result + "')";
+                }
+
+                if (file) {
+                    reader.readAsDataURL(file);
+                }
+            }
+        </script>
+            <div class="form-floating mb-3">
+                <input asp-for="Username" class="form-control" disabled />
+                <label asp-for="Username" class="form-label"></label>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.FirstName" class="form-control" placeholder="" />
+                <label asp-for="Input.FirstName" class="form-label"></label>
+                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.LastName" class="form-control" placeholder="" />
+                <label asp-for="Input.LastName" class="form-label"></label>
+                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Address" class="form-control" placeholder="" />
+                <label asp-for="Input.Address" class="form-label"></label>
+                <span asp-validation-for="Input.Address" class="text-danger"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.PhoneNumber" class="form-control" placeholder=""/>
+                <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="mt-4 flex items-center justify-between">
+                <button id="update-profile-button" type="submit" class="btn text-white font-medium py-2" style="width: 200px; background-color: #F05537">Update</button>
+                <div class="flex items-center gap-x-3">
+                    <a role="button" class="btn btn-secondary py-2 @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email" style="width:200px">Change Email</a>
+                    <a role="button" class="btn btn-light py-2 @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword" style="width:200px"> Change Password</a>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

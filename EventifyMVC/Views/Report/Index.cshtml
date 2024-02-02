@@ -1,0 +1,197 @@
+﻿@using static EventifyMVC.Enums.Enums;
+@model ReportIndexVM
+
+<partial name="_Notification" />
+
+@{
+    var term = Context.Request.Query["term"];
+    var sort = Context.Request.Query["orderBy"];
+    var currentPage = Context.Request.Query["pageNumber"];
+    var reviewed = Context.Request.Query["reviewed"];
+
+    if (String.IsNullOrEmpty(currentPage))
+    {
+        currentPage = "1";
+    }
+
+    string sortText = "Sort by date (latest first)";
+    switch (sort)
+    {
+        case "date_dsc":
+            sortText = "Sort by date (latest first)";
+            break;
+        case "date_asc":
+            sortText = "Sort by date (earlier first)";
+            break;
+    }
+}
+
+<div class="container-fluid">
+
+    <div class="flex items-center justify-between mb-3">
+        <div class="">
+            <form asp-action="Index" method="get" class="flex items-center gap-x-3">
+                <input type="hidden" name="orderBy" value="@sort" />
+                <input type="hidden" name="reviewed" value="@reviewed" />
+
+                <div>
+                    <input name="term" id="searchInput" class="form-control" value="@term" placeholder="Search for user or event" />
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+                </div>
+            </form>
+
+        </div>
+        <div class="flex items-center gap-x-4 mx-24">
+            <div class="bg-white shadow rounded-3 p-1 ">
+                <a role="button" asp-controller="Report" asp-action="Index" asp-route-term="@term" asp-route-reviewed="false">
+                    <button class="btn @(String.IsNullOrEmpty(reviewed) || reviewed == "false" ? "btn-primary" : "btn-outline-primary" ) border-0 font-medium">Pending</button>
+                </a>
+                <a role="button" asp-controller="Report" asp-action="Index" asp-route-term="@term" asp-route-reviewed="true">
+                    <button class="btn @(reviewed == "true" ? "btn-primary" : "btn-outline-primary" ) border-0 font-medium">Reviewed</button>
+                </a>
+            </div>
+            <div>
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle font-medium py-2 shadow text-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        @sortText
+                    </button>
+                    <ul class="dropdown-menu w-100">
+                        <li><a class="dropdown-item" asp-action="Index" asp-route-orderBy="date_dsc" asp-route-term="@term" asp-route-reviewed="@reviewed">Sort by date (latest first)</a></li>
+                        <li><a class="dropdown-item" asp-action="Index" asp-route-orderBy="date_asc" asp-route-term="@term" asp-route-reviewed="@reviewed">Sort by date (earlier first)</a></li>
+                    </ul>
+                </div>
+
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row">
+        @if (Model.TotalResults > 0 && int.Parse(currentPage) <= Model.TotalPages)
+        {
+
+            <div class="row col-10 mt-4">
+                @foreach (var report in Model.Reports)
+                {
+                    string bannerColor = "";
+                    switch (report.Reviewed)
+                    {
+                        case false:
+                            bannerColor = "bg-yellow-400";
+                            break;
+                        case true:
+                            bannerColor = "bg-green-600";
+                            break;
+                    }
+
+                    <div class="relative px-0 py-2 m-2 text-black" style="width: 30%; cursor: pointer;">
+                        <div class="absolute -top-5 right-0 rounded-full px-1 text-center bg-white py-1 capitalize flex items-center justify-center shadow">
+                            <div class="@bannerColor rounded-full w-20 text-center h-7 capitalize font-medium text-white">
+                                @if (report.Reviewed == true)
+                                {
+                                    <text>Reviewed</text>
+                                }
+                                else
+                                {
+                                    <text>Pending</text>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="h-96 rounded-xl bg-white shadow">
+                            <div class="px-4 pt-5 -my-3">
+                                <div class="cursor-pointer text-lg font-bold text-[#39364f]">
+                                    Event: @report.Event.Title
+                                </div>
+                                <div class="mt-2 text-sm text-[#6f7287]">
+                                    Organizer: @report.Event.User.FirstName @report.Event.User.LastName
+                                </div>
+                                <div class="flex items-center gap-x-3 justify-center">
+                                    <div title="Total reports for this event" class="mt-2 rounded-full px-1 text-center w-24 bg-white py-1 capitalize flex items-center justify-center shadow">
+                                        <div class="bg-red-600 rounded-full w-20 text-center h-7 capitalize font-medium text-white">
+                                           <i class="bi bi-flag-fill me-2"></i> @report.Event.Reports.Count
+                                        </div>
+                                    </div>
+                                    <div title="Total reports for this organizer" class="mt-2 rounded-full px-1 text-center w-24 bg-white py-1 capitalize flex items-center justify-center shadow">
+                                        <div class="bg-red-600 rounded-full w-20 text-center h-7 capitalize font-medium text-white">
+                                            <i class="bi bi-person-fill me-2"></i>  @report.Event.User.Events.Sum(@event => @event.Reports?.Count ?? 0)
+                                        </div>
+                                    </div>
+                                    <div title="Total reports with this reason" class="mt-2 rounded-full px-1 text-center w-24 bg-white py-1 capitalize flex items-center justify-center shadow">
+                                        <div class="bg-red-600 rounded-full w-20 text-center h-7 capitalize font-medium text-white">
+                                            <i class="bi bi-exclamation-triangle-fill me-2"></i>  @report.Event.Reports.Count(r => r.ReportEventReasonId == report.ReportEventReasonId)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3 text-sm text-[#6f7287]">
+                                    Report Reason: @report.ReportEventReason.Name
+                                </div>
+                                <div class="mt-2 text-sm text-[#6f7287] overflow-auto">
+                                    Description: @report.Description
+                                </div>
+                                <div class="mt-2 text-sm text-[#6f7287]">
+                                    Reporter: @report.Email
+                                </div>
+                                <div class="mt-2 text-sm text-[#6f7287]">
+                                    Date Reported: @report.Created_at.ToString("yyyy-MM-dd")
+                                </div>
+                            </div>
+                        <div class="flex items-center gap-x-3 justify-center absolute bottom-5 left-7">
+                                @if(report.Reviewed == false)
+                                {
+                                    <form method="post" asp-controller="Report" asp-action="UpdateReportStatus" asp-route-id="@report.Id" asp-route-term="@term" asp-route-orderBy="@sort" asp-route-pageNumber="@currentPage">
+                                        <button type="submit" class="btn bg-green-600 py-2 font-medium text-white"><i class="bi bi-check2"></i> Mark as Reviewed</button>
+                                    </form>
+                                }
+                                <a asp-controller="Event" asp-action="Details" asp-route-id="@report.Event.Id" role="button">
+                                    <button class="btn bg-red-600 py-2 font-medium text-white"><i class="bi bi-bullseye me-2"></i>Take Action</button>
+                                </a>
+                        </div>
+                        </div>
+                    </div>
+                }
+
+
+            </div>
+            <div class="flex flex-col items-center justify-center fixed bottom-4 col-10 gap-y-3 bg-white z-50">
+                @if (Model.TotalPages > 1)
+                {
+                    <div class="d-flex">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination">
+                                @if (int.Parse(currentPage) != 1)
+                                {
+                                    <li class="page-item me-2"><a class="page-link" asp-controller="Report" asp-action="Index" asp-route-term="@term" asp-route-orderBy="@sort" asp-route-reviewed="@reviewed" asp-route-pageNumber="@(int.Parse(currentPage) - 1)">Previous</a></li>
+                                }
+
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == int.Parse(currentPage) ? "active" : "")"><a class="page-link" asp-controller="Report" asp-action="Index" asp-route-term="@term" asp-route-orderBy="@sort" asp-route-reviewed="@reviewed" asp-route-pageNumber="@i">@i</a></li>
+                                }
+
+                                @if (int.Parse(currentPage) != Model.TotalPages)
+                                {
+                                    <li class="page-item ms-2"><a class="page-link" asp-controller="Report" asp-action="Index" asp-route-term="@term" asp-route-orderBy="@sort" asp-route-reviewed="@reviewed" asp-route-pageNumber="@(int.Parse(currentPage) + 1)">Next</a></li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                }
+                <div class="">
+                    Showing <strong>@((int.Parse(currentPage) * (int)PageSize.Default) - ((int)PageSize.Default - 1))</strong> to <strong>@(int.Parse(currentPage) * (int)PageSize.Default <= Model.TotalResults ? int.Parse(currentPage) * (int)PageSize.Default : Model.TotalResults)</strong> of <strong>@Model.TotalResults</strong> results
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="mx-auto">
+                <img src="@Url.Content("~/images/noResultsFound.png")" class="block mx-auto w-1/6 -mt-10" />
+                <h1 class="text-center text-xl font-semibold -mt-5">No results found. Please try a different search!</h1>
+            </div>
+        }
+
+
+    </div>

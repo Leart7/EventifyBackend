@@ -1,0 +1,36 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<ul class="navbar-nav relative">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        var user = await UserManager.GetUserAsync(User) as ApplicationUser;
+        var imageUrl = user?.ImageUrl;
+
+        <div class="dropdown-center ">
+            <button type="button" class="btn shadow-none flex items-center gap-x-3" data-bs-toggle="dropdown" aria-expanded="false">
+                <p>@User.Identity?.Name</p>
+                @if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    <img src="@imageUrl" alt="User Image" class="w-10 h-10 rounded-full">
+                }
+                else
+                {
+                    <i class="bi bi-person-circle text-4xl"></i>
+                }
+            </button>
+            <ul class="dropdown-menu w-100">
+                <li><a class="dropdown-item nav-link text-dark text-center" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage"><i class="bi bi-person text-lg me-2" style="color: #FF6600"></i> Profile</a></li>
+                <li>
+                    <form class="form-inline text-center" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                        <button type="submit" class="dropdown-item nav-link btn btn-link text-dark"><i class="bi bi-box-arrow-right text-lg text-red-600 me-2"></i> Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    }
+    else
+    {
+    }
+</ul>

@@ -1,0 +1,66 @@
+﻿@model EditAdminVM
+
+@{
+    ViewData["Title"] = "Edit Admin";
+    var user = Model.User as ApplicationUser;
+}
+
+<div class="container p-3 rounded-xl shadow">
+    <div class="row mb-3">
+        <div class="col-12 pb-3">
+            <h2 class="text-2xl font-semibold">Edit Admin</h2>
+        </div>
+        <hr />
+    </div>
+    <form method="post" asp-area="SuperAdmin" asp-controller="Admin" asp-action="Edit">
+        <div class="form-floating mb-3">
+            <input asp-for="@user.Id" class="form-control" placeholder="" disabled />
+            <label asp-for="@user.Id"></label>
+        </div>
+        <div class="form-floating mb-3">
+            <input asp-for="@user.FirstName" class="form-control" placeholder="" disabled />
+            <label asp-for="@user.FirstName"></label>
+        </div>
+        <div class="form-floating mb-3">
+            <input asp-for="@user.LastName" class="form-control" autocomplete="lastname" aria-required="true" placeholder="" disabled />
+            <label asp-for="@user.LastName"></label>
+        </div>
+        <div class="form-floating mb-3">
+            <input asp-for="@user.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="" disabled />
+            <label asp-for="@user.Email"></label>
+        </div>
+
+        @{
+            string currentController = null;
+        }
+
+        @for (int i = 0; i < Model.Permissions.Count; i++)
+        {
+            var controllerName = Model.Permissions[i].Controller;
+
+            @if (currentController != controllerName)
+            {
+                <p class="text-xl font-medium">@controllerName</p>
+                currentController = controllerName;
+            }
+
+
+            <div class="form-check ms-3">
+                <input type="hidden" name="permissions[@i].Id" value="@Model.Permissions[i].Id" />
+                <input type="checkbox" class="form-check-input" name="permissions[@i].Allowed" value="true" id="@($"permission_{i}")" @(Model.Permissions[i].Allowed ? "checked" : "")>
+                <label class="form-check-label" for="@($"permission_{i}")">
+                    @Model.Permissions[i].Action
+                </label>
+            </div>
+        }
+
+        <div class="mt-4">
+            <button type="submit" class="btn text-white font-medium py-2" style="width: 200px; background-color: #F05537">Update Permissions</button>
+            <a asp-area="SuperAdmin" asp-controller="Admin" asp-action="Index" class="btn btn-secondary py-2" style="width:200px">
+                Back to List
+            </a>
+        </div>
+    </form>
+
+
+</div>

@@ -1,0 +1,152 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using static EventifyMVC.Enums.Enums;
+@model UserIndexVM
+
+@{
+    var searchTerm = Context.Request.Query["term"];
+    var currentPage = Context.Request.Query["pageNumber"];
+    var sort = Context.Request.Query["orderBy"];
+
+
+    if (String.IsNullOrEmpty(currentPage))
+    {
+        currentPage = "1";
+    }
+}
+
+<partial name="_Notification" />
+
+<div class="container p-3 rounded-xl shadow">
+    <div class="row mb-3">
+        <div class="col-12 pb-3">
+            <h2 class="text-2xl font-semibold">Users</h2>
+        </div>
+        <hr />
+
+        <div class="col-md-6 mt-3">
+            <form asp-controller="User" asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input name="term" id="searchInput" class="form-control" placeholder="Search for users" value="@searchTerm" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+@if(Model.TotalResults > 0 && int.Parse(currentPage) <= Model.TotalPages)
+{
+    <table class="table table-striped mt-4" style="width:100%">
+        <thead>
+            <tr>
+                <th></th>
+                <th>
+                        <a asp-action="Index" asp-route-orderBy="@Model.EmailSortOrder" asp-route-term="@searchTerm" class="flex items-center gap-x-3 text-black">
+                        Email <partial name="_SortingCaret" model="@Model.EmailSortOrder" />
+                    </a>
+                </th>
+                <th>
+                        <a asp-action="Index" asp-route-orderBy="@Model.FirstNameSortOrder" asp-route-term="@searchTerm" class="flex items-center gap-x-3 text-black">
+                        First Name <partial name="_SortingCaret" model="@Model.FirstNameSortOrder" />
+                    </a>
+                </th>
+                <th>
+                        <a asp-action="Index" asp-route-orderBy="@Model.LastNameSortOrder" asp-route-term="@searchTerm" class="flex items-center gap-x-3 text-black">
+                        Last Name <partial name="_SortingCaret" model="@Model.LastNameSortOrder" />
+                    </a>
+                </th>
+                <th>Phone Number</th>
+                <th>Address</th>
+                <th>Date Joined</th>
+                <th>
+                        <a asp-action="Index" asp-route-orderBy="@Model.EventsSortOrder" asp-route-term="@searchTerm" class="flex items-center gap-x-3 text-black">
+                        Events <partial name="_SortingCaret" model="@Model.EventsSortOrder" />
+                    </a>
+                </th>
+                <th>
+                        <a asp-action="Index" asp-route-orderBy="@Model.FollowersSortOrder" asp-route-term="@searchTerm" class="flex items-center gap-x-3 text-black">
+                        Followers <partial name="_SortingCaret" model="@Model.FollowersSortOrder" />
+                    </a>
+                </th>
+                <th>
+                        <a asp-action="Index" asp-route-orderBy="@Model.ReportsSortOrder" asp-route-term="@searchTerm" class="flex items-center gap-x-3 text-black">
+                        Reports <partial name="_SortingCaret" model="@Model.ReportsSortOrder" />
+                    </a>
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var identityUser in Model.Users)
+            {
+                var user = identityUser as ApplicationUser;
+
+                <tr>
+                    <td class="align-middle"><img src="@user.ImageUrl" class="w-10 h-10 rounded-full" /></td>
+                    <td class="align-middle">@user.UserName</td>
+                    <td class="align-middle">@user.FirstName</td>
+                    <td class="align-middle">@user.LastName</td>
+                    <td class="align-middle">@user.PhoneNumber</td>
+                    <td class="align-middle">@user.Address</td>
+                    <td class="align-middle">@user.Created_at.ToString("dd-MM-yyyy")</td>
+                    <td class="align-middle">@user.Events.Count</td>
+                    <td class="align-middle">@user.FollowedUserFollows.Count</td>
+                    <td class="align-middle">
+                        @user.Events.Sum(@event => @event.Reports?.Count ?? 0)
+                    </td>
+                    <td class="align-middle dropdown-center ">
+                        <i role="button" data-bs-toggle="dropdown" aria-expanded="false" class="bi bi-three-dots" style="cursor: pointer;"></i>
+                        <ul class="dropdown-menu">
+                            <li style="cursor: pointer;"><a asp-controller="User" asp-action="UserEvents" asp-route-userId="@user.Id" class="dropdown-item nav-link text-dark font-medium text-gray-500 text-center "><i class="bi bi-calendar-event text-lg text-blue-600 me-2"></i>See Events</a></li>
+                        </ul>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+        <div class="row">
+            <div class="col-md-6">
+                Showing <strong>@((int.Parse(currentPage) * (int)PageSize.Default) - ((int)PageSize.Default - 1))</strong> to <strong>@(int.Parse(currentPage) * (int)PageSize.Default <= Model.TotalResults ? int.Parse(currentPage) * (int)PageSize.Default : Model.TotalResults)</strong> of <strong>@Model.TotalResults</strong> results
+            </div>
+            @if (Model.TotalPages > 1)
+            {
+                <div class="col-md-6 d-flex justify-content-end">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            @if (int.Parse(currentPage) != 1)
+                            {
+                                <li class="page-item me-2"><a class="page-link" asp-controller="User" asp-action="Index" asp-route-term="@searchTerm" asp-route-orderBy="@sort" asp-route-pageNumber="@(int.Parse(currentPage) - 1)">Previous</a></li>
+                            }
+
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == int.Parse(currentPage) ? "active" : "")"><a class="page-link" asp-controller="User" asp-action="Index" asp-route-term="@searchTerm" asp-route-orderBy="@sort" asp-route-pageNumber="@i">@i</a></li>
+                            }
+
+                            @if (int.Parse(currentPage) != Model.TotalPages)
+                            {
+                                <li class="page-item ms-2"><a class="page-link" asp-controller="User" asp-action="Index" asp-route-term="@searchTerm" asp-route-orderBy="@sort" asp-route-pageNumber="@(int.Parse(currentPage) + 1)">Next</a></li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <img src="@Url.Content("~/images/noResultsFound.png")" class="block mx-auto w-1/6 -mt-10" />
+        <h1 class="text-center text-xl font-semibold -mt-5">No results found. Please try a different search!</h1>
+    }
+</div>
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,216 @@
+﻿@using static EventifyMVC.Enums.Enums;
+@model UserEventsVM
+
+@{
+    var user = Model.User as ApplicationUser;
+}
+
+@{
+    var status = Context.Request.Query["status"];
+    var title = Context.Request.Query["title"];
+    var sort = Context.Request.Query["orderBy"];
+    var online = Context.Request.Query["online"];
+    var pastEvents = Context.Request.Query["pastEvents"];
+    var currentPage = Context.Request.Query["pageNumber"];
+    var userId = Context.Request.Query["userId"];
+
+
+    if (String.IsNullOrEmpty(currentPage))
+    {
+        currentPage = "1";
+    }
+
+    string sortText = "Sort by date (soonest first)";
+    switch (sort)
+    {
+        case "date_soonest_first":
+            sortText = "Sort by date (soonest first)";
+            break;
+        case "date_dsc":
+            sortText = "Sort by date (created first)";
+            break;
+        case "date_asc":
+            sortText = "Sort by date (created last)";
+            break;
+    }
+}
+
+<div class="container-fluid">
+    <div class="flex items-center justify-between mb-3">
+        <div class="">
+            <form asp-action="UserEvents" method="get" class="flex items-center gap-x-3" asp-route-userId="@user.Id">
+                <div>
+                    <input name="title" id="searchInput" class="form-control" value="@title" placeholder="Search for events" />
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+                </div>
+            </form>
+        </div>
+        <div class="flex items-center gap-x-4 mx-24">
+            <div class="bg-white shadow rounded-3 p-1 ">
+                <a role="button" asp-controller="User" asp-action="UserEvents" asp-route-userId="@user.Id" asp-route-status="" asp-route-title="@title" asp-route-pastEvents="@pastEvents" asp-route-online="@online">
+                    <button class="btn @(String.IsNullOrEmpty(status) ? "btn-primary" : "btn-outline-primary" ) border-0 font-medium">All</button>
+                </a>
+                <a role="button" asp-controller="User" asp-action="UserEvents" asp-route-userId="@user.Id" asp-route-status="pending" asp-route-title="@title" asp-route-pastEvents="@pastEvents" asp-route-online="@online">
+                    <button class="btn @(status == "pending" ? "btn-primary" : "btn-outline-primary" ) border-0 font-medium">Pending</button>
+                </a>
+                <a role="button" asp-controller="User" asp-action="UserEvents" asp-route-userId="@user.Id" asp-route-status="accepted" asp-route-title="@title" asp-route-pastEvents="@pastEvents" asp-route-online="@online">
+                    <button class="btn @(status == "accepted" ? "btn-primary" : "btn-outline-primary" ) border-0 font-medium">Accepted</button>
+                </a>
+                <a role="button" asp-controller="User" asp-action="UserEvents" asp-route-userId="@user.Id" asp-route-status="rejected" asp-route-title="@title" asp-route-pastEvents="@pastEvents" asp-route-online="@online">
+                    <button class="btn @(status == "rejected" ? "btn-primary" : "btn-outline-primary" ) border-0 font-medium">Rejected</button>
+                </a>
+                <a role="button" asp-controller="User" asp-action="UserEvents" asp-route-userId="@user.Id" asp-route-status="banned" asp-route-title="@title" asp-route-pastEvents="@pastEvents" asp-route-online="@online">
+                    <button class="btn @(status == "banned" ? "btn-primary" : "btn-outline-primary" ) border-0 font-medium">Banned</button>
+                </a>
+            </div>
+            <div>
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle font-medium py-2 shadow text-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        @sortText
+                    </button>
+                    <ul class="dropdown-menu w-100">
+                        <li><a class="dropdown-item" asp-action="UserEvents" asp-route-userId="@user.Id" asp-route-orderBy="date_soonest_first">Sort by date (soonest first)</a></li>
+                        <li><a class="dropdown-item" asp-action="UserEvents" asp-route-userId="@user.Id" asp-route-orderBy="date_dsc">Sort by date (created first)</a></li>
+                        <li><a class="dropdown-item" asp-action="UserEvents" asp-route-userId="@user.Id" asp-route-orderBy="date_asc">Sort by date (created last)</a></li>
+                    </ul>
+                </div>
+
+
+            </div>
+
+        </div>
+    </div>
+    <h1 class="text-4xl mx-auto text-center font-bold mt-5">@user.FirstName @user.LastName Events</h1>
+
+
+    <div class="row">
+        <div class="col-2 mt-4">
+            <div class="bg-white shadow rounded-3 p-1 d-inline-block w-auto">
+                <a role="button" asp-controller="User" asp-action="UserEvents" asp-route-userId="@user.Id" asp-route-pastEvents="@(pastEvents == "true" ? "" : "true")" asp-route-online="@online" asp-route-title="@title" asp-route-status="@status">
+                    <button class="btn @(pastEvents == "true" ? "btn-primary" : "btn-outline-primary" ) border-0 font-medium">Past Events</button>
+                </a>
+                <a role="button" asp-controller="User" asp-action="UserEvents" asp-route-userId="@user.Id" asp-route-online="@(online == "true" ? "" : "true")" asp-route-pastEvents="@pastEvents" asp-route-title="@title" asp-route-status="@status">
+                    <button class="btn @(online == "true" ? "btn-primary" : "btn-outline-primary" ) border-0 font-medium">Online</button>
+                </a>
+            </div>
+        </div>
+        @if (Model.TotalResults > 0 && int.Parse(currentPage) <= Model.TotalPages)
+        {
+
+            <div class="row col-10 mt-4">
+                @foreach (var eventItem in Model.Events)
+                {
+                    string bannerColor = "";
+                    switch (eventItem.Status)
+                    {
+                        case "banned":
+                            bannerColor = "bg-red-600";
+                            break;
+                        case "pending":
+                            bannerColor = "bg-yellow-400";
+                            break;
+                        case "rejected":
+                            bannerColor = "bg-red-300";
+                            break;
+                        case "accepted":
+                            bannerColor = "bg-green-600";
+                            break;
+                    }
+
+                    <a asp-controller="Event" asp-action="Details" asp-route-id="@eventItem.Id" class="relative px-0 py-2 m-2 text-black" style="width: 30%; cursor: pointer;">
+                        <div class="absolute -top-2 right-0 rounded-full px-1 text-center bg-white py-1 capitalize flex items-center justify-center shadow">
+                            <div class="@bannerColor  rounded-full w-20 text-center h-7 capitalize font-medium text-white">
+                                @eventItem.Status
+                            </div>
+                        </div>
+
+                        <div class="h-96 rounded-xl bg-white shadow">
+                            <div class="cursor-pointer" style="height: 53%">
+                                <img class="w-full rounded-xl border-[1px] border-[#dbdae3] object-cover"
+                                     style="height: 85%"
+                                     src="@eventItem.Images.First().ImageUrl" />
+
+                            </div>
+                            <div class="px-4 -my-3">
+                                <div class="cursor-pointer text-lg font-bold text-[#39364f]">
+                                    @eventItem.Title
+                                </div>
+                                <div class="mr-8 pb-1 pt-2 text-sm font-normal text-[#d1410c]">
+                                    @eventItem.StartTime
+                                </div>
+                                <aside class="mr-8 text-base  md:text-sm ">
+                                    @if (eventItem.City != null)
+                                    {
+                                        <div class="text-[#6f7287]">@eventItem.City</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-[#6f7287]">Online</div>
+
+                                    }
+                                    @if (eventItem.Price != null)
+                                    {
+                                        <div class="text-[#6f7287]">
+                                            €@eventItem.Price
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-[#6f7287]">
+                                            Free
+                                        </div>
+                                    }
+                                    <div class="mt-2 pt-1 font-semibold text-[#39364f]">
+                                        <div>
+                                            <i class="bi bi-person-fill"></i> @eventItem.User.FirstName @eventItem.User.LastName
+                                        </div>
+                                    </div>
+                                </aside>
+                            </div>
+                        </div>
+
+                    </a>
+                }
+
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    Showing <strong>@((int.Parse(currentPage) * (int)PageSize.Default) - ((int)PageSize.Default - 1))</strong> to <strong>@(int.Parse(currentPage) * (int)PageSize.Default <= Model.TotalResults ? int.Parse(currentPage) * (int)PageSize.Default : Model.TotalResults)</strong> of <strong>@Model.TotalResults</strong> results
+                </div>
+                @if (Model.TotalPages > 1)
+                {
+                    <div class="col-md-6 d-flex">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination">
+                                @if (int.Parse(currentPage) != 1)
+                                {
+                                    <li class="page-item me-2"><a class="page-link" asp-controller="User" asp-action="UserEvents" asp-title="@title" asp-route-userId="@user.Id" asp-route-orderBy="@sort" asp-route-status="@status" asp-route-online="@online" asp-route-pastEvents="@pastEvents" asp-route-pageNumber="@(int.Parse(currentPage) - 1)">Previous</a></li>
+                                }
+
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == int.Parse(currentPage) ? "active" : "")"><a class="page-link" asp-controller="User" asp-route-userId="@user.Id" asp-action="UserEvents" asp-title="@title" asp-route-orderBy="@sort" asp-route-status="@status" asp-route-online="@online" asp-route-pastEvents="@pastEvents" asp-route-pageNumber="@i">@i</a></li>
+                                }
+
+                                @if (int.Parse(currentPage) != Model.TotalPages)
+                                {
+                                    <li class="page-item ms-2"><a class="page-link" asp-controller="User" asp-action="UserEvents" asp-title="@title" asp-route-userId="@user.Id" asp-route-orderBy="@sort" asp-route-status="@status" asp-route-online="@online" asp-route-pastEvents="@pastEvents" asp-route-pageNumber="@(int.Parse(currentPage) + 1)">Next</a></li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="mx-auto">
+                <img src="@Url.Content("~/images/noResultsFound.png")" class="block mx-auto w-1/6 -mt-10" />
+                <h1 class="text-center text-xl font-semibold -mt-5">No results found. Please try a different search!</h1>
+            </div>
+        }
+
+
+    </div>

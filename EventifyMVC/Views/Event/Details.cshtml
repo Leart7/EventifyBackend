@@ -1,0 +1,102 @@
+﻿@model Event
+
+<partial name="_Notification" />
+
+<a asp-action="Index" class="btn btn-secondary py-2 sticky top-10" style="width:150px">
+    <i class="bi bi-arrow-left"></i> Back to Events
+</a>
+
+<div id="carouselExampleIndicators" class="carousel slide rounded-xl w-1/2 h-50 mx-auto">
+    <div class="carousel-indicators">
+        @for (int i = 0; i < Model.Images.Count; i++)
+        {
+            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")" aria-label="Slide @i"></button>
+        }
+    </div>
+    <div class="carousel-inner rounded-xl">
+        @foreach (var image in Model.Images)
+        {
+            <div class="carousel-item @(image == Model.Images.First() ? "active" : "")">
+                <img src="@image.ImageUrl" class="d-block w-full">
+            </div>
+        }
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<div class="mx-auto bg-gray-50 mt-20 p-3 relative" style="width: 65%">
+    <div class="absolute -top-5 right-0 rounded-full px-1 text-center bg-white py-1 capitalize flex items-center justify-center shadow">
+        <div class="bg-red-600 rounded-full text-center h-10 px-3 capitalize font-medium text-white flex items-center">
+            <i class="bi bi-flag-fill"></i>
+            <span class="ml-2">@Model.Reports.Count</span>
+        </div>
+    </div>
+    <div class="absolute -top-5 right-20 rounded-full px-1 text-center bg-white py-1 capitalize flex items-center justify-center shadow">
+        <div class="bg-green-600 rounded-full text-center h-10 px-3 capitalize font-medium text-white flex items-center">
+            <i class="bi bi-heart-fill"></i>
+            <span class="ml-2">@Model.Likes.Count</span>
+        </div>
+    </div>
+
+
+    <p>@Model.StartTime.ToString("dddd, MMMM dd, yyyy ")</p>
+    <h1 class="font-bold text-4xl">@Model.Title</h1>
+    <p class="mt-4">@Model.Description</p>
+    <div class="w-3/4 rounded-xl bg-gray-200 p-3 mt-4 flex items-ceter gap-x-5">
+        <img src="@Model.User.ImageUrl" class="h-14 w-14 rounded-full" />
+        <div class="flex flex-col gap-y-3">
+            <p>By <strong>@Model.User.FirstName @Model.User.LastName</strong></p>
+            <p>@Model.User.FollowedUserFollows.Count followers</p>
+        </div>
+    </div>
+    <h2 class="font-semibold text-xl mt-4 mb-2">Date and time</h2>
+    <p><i class="bi bi-calendar-event me-3"></i> @Model.StartTime.ToString("MMMM d · h:mm tt") - @Model.EndTime.ToString("MMMM d · h:mm tt") CET</p>
+    <h2 class="font-semibold text-xl mt-4 mb-2">Location</h2>
+    <p><i class="bi bi-geo-alt-fill me-3"></i> @(Model.City != null ? Model.City : "Online")</p>
+    <h2 class="font-semibold text-xl mt-4 mb-2">About this event</h2>
+    <p>@Model.About</p>
+    <h2 class="font-semibold text-xl mt-4 mb-2">About the organizer</h2>
+    <div class="w-3/4 mx-auto rounded-xl bg-gray-200 p-5 mt-4 text-center flex flex-col items-center gap-y-5">
+        <img src="@Model.User.ImageUrl" class="h-16 w-16 rounded-full" />
+        <p>Organized by</p>
+        <p class="text-xl"><strong>@Model.User.FirstName @Model.User.LastName</strong></p>
+        <div class="flex items-center gap-x-7">
+            <p><strong class="text-xl">@Model.User.FollowedUserFollows.Count</strong> <br /> Followers</p>
+            <p><strong class="text-xl">@Model.User.Events.Count</strong> <br /> Events</p>
+        </div>
+        <p>@Model.User.Bio</p>
+    </div>
+    <div class="flex items-center gap-x-4 mt-5 mx-auto block justify-center">
+        <form method="post" asp-controller="Event" asp-action="UpdateStatus" asp-route-id="@Model.Id">
+            <input type="hidden" name="newStatus" id="newStatus" value="" />
+
+            @if (Model.Status == "pending")
+            {
+                <button type="submit" onclick="setNewStatus('accepted')" class="btn bg-green-600 py-3 font-medium text-white" style="width:150px"><i class="bi bi-check2"></i> Accept</button>
+                <button type="submit" onclick="setNewStatus('rejected')" class="btn bg-red-600 py-3 font-medium text-white" style="width:150px"><i class="bi bi-x-circle"></i> Reject</button>
+            }
+            else if (Model.Status == "rejected" || Model.Status == "banned")
+            {
+                <button type="submit" onclick="setNewStatus('accepted')" class="btn bg-green-600 py-3 font-medium text-white" style="width:150px"><i class="bi bi-check2"></i> Accept</button>
+            }
+            else
+            {
+                <button type="submit" onclick="setNewStatus('banned')" class="btn bg-red-600 py-3 font-medium text-white" style="width:150px"><i class="bi bi-slash-circle"></i> Ban</button>
+            }
+        </form>
+
+        <script>
+            function setNewStatus(status) {
+                document.getElementById('newStatus').value = status;
+            }
+        </script>
+
+    </div>
+</div>

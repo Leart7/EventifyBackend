@@ -1,0 +1,27 @@
+﻿@model string
+
+@{
+    var url = Context.Request.Query["orderBy"].ToString().Split('_')[0];
+    string fieldName = Model?.Split('_')[0];
+}
+
+<div class="flex flex-col text-sm">
+    @if (string.IsNullOrEmpty(Model) || url != fieldName)
+    {
+        <i class="bi bi-caret-up -mb-2.5"></i>
+        <i class="bi bi-caret-down"></i>
+    }
+    else
+    {
+        string sortOrder = Model.Split('_').LastOrDefault()?.ToLower();
+
+        if (sortOrder == "asc")
+        {
+            <i class="bi bi-caret-down-fill -mb-2.5"></i>
+        }
+        else if (sortOrder == "dsc")
+        {
+            <i class="bi bi-caret-up-fill mb-1"></i>
+        }
+    }
+</div>
